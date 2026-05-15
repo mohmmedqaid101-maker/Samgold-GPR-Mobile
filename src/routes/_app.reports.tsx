@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus, Loader2, Trash2, FileText } from "lucide-react";
+import { Plus, Loader2, Trash2, FileText, Download, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { safeErrorMessage } from "@/lib/errors";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { printReportAsPDF } from "@/lib/pdf";
+import { analyzeGeoData } from "@/lib/ai.server";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -47,6 +49,7 @@ function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [aiBusy, setAiBusy] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     report_type: "analysis",
@@ -98,6 +101,49 @@ function ReportsPage() {
       return;
     }
     setReports((r) => r.filter((x) => x.id !== id));
+  };
+
+  const exportPdf = (r: Report) => {
+    printReportAsPDF({
+      title: r.title,
+      lang,
+      meta: {
+        [lang === "ar" ? "النوع" : "Type"]: typeLabel(r.report_type),
+        [lang === "ar" ? "تاريخ الإنشاء" : "Created"]: new Date(r.created_at).toLocaleString(lang),
+      },
+      summary: r.summary,
+      content: r.content,
+    });
+  };
+
+  const generateAiReport = async (r: Report) => {
+    if (!user) return;
+    setAiBusy(r.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("auth");
+      const prompt =
+        lang === "ar"
+          ? `لخّص واستنتج توصيات احترافية للتقرير التالي بصيغة نقاط واضحة.`
+          : `Summarize and produce professional recommendations for the following report as clear bullet points.`;
+      const ctx = `${r.title}\n\n${r.summary ?? ""}\n\n${r.content ?? ""}`;
+      const res = await analyzeGeoData({
+        data: { prompt, context: ctx },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const newSummary = res.content.slice(0, 600);
+      const { error } = await supabase
+        .from("reports")
+        .update({ summary: newSummary, content: `${r.content ?? ""}\n\n— AI —\n${res.content}` })
+        .eq("id", r.id);
+      if (error) throw error;
+      toast.success(lang === "ar" ? "تم تحديث التقرير بـ AI" : "Report enriched by AI");
+      load();
+    } catch (e) {
+      toast.error(safeErrorMessage(e, lang));
+    } finally {
+      setAiBusy(null);
+    }
   };
 
   const typeLabel = (tp: string) =>
@@ -210,9 +256,32 @@ function ReportsPage() {
                   )}
                   <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                     <span>{new Date(r.created_at).toLocaleDateString()}</span>
-                    <Button size="sm" variant="ghost" onClick={() => remove(r.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => generateAiReport(r)}
+                        disabled={aiBusy === r.id}
+                        title={lang === "ar" ? "إثراء بـ AI" : "Enrich with AI"}
+                      >
+                        {aiBusy === r.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        ) : (
+                          <Sparkles className="h-4 w-4 text-primary" />
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => exportPdf(r)}
+                        title={lang === "ar" ? "تصدير PDF" : "Export PDF"}
+                      >
+                        <Download className="h-4 w-4 text-primary" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => remove(r.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
