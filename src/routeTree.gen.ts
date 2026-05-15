@@ -42,6 +42,7 @@ import { Route as AppMapCinematicRouteImport } from './routes/_app.map.cinematic
 import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
 import { Route as AppAdminSurveysRouteImport } from './routes/_app.admin.surveys'
 import { Route as AppAdminAiRouteImport } from './routes/_app.admin.ai'
+import { Route as AppAdminActivityRouteImport } from './routes/_app.admin.activity'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -207,6 +208,11 @@ const AppAdminAiRoute = AppAdminAiRouteImport.update({
   path: '/ai',
   getParentRoute: () => AppAdminRoute,
 } as any)
+const AppAdminActivityRoute = AppAdminActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => AppAdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -233,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/subscriptions': typeof AppSubscriptionsRoute
   '/support': typeof AppSupportRoute
   '/updates': typeof AppUpdatesRoute
+  '/admin/activity': typeof AppAdminActivityRoute
   '/admin/ai': typeof AppAdminAiRoute
   '/admin/surveys': typeof AppAdminSurveysRoute
   '/admin/users': typeof AppAdminUsersRoute
@@ -266,6 +273,7 @@ export interface FileRoutesByTo {
   '/subscriptions': typeof AppSubscriptionsRoute
   '/support': typeof AppSupportRoute
   '/updates': typeof AppUpdatesRoute
+  '/admin/activity': typeof AppAdminActivityRoute
   '/admin/ai': typeof AppAdminAiRoute
   '/admin/surveys': typeof AppAdminSurveysRoute
   '/admin/users': typeof AppAdminUsersRoute
@@ -302,6 +310,7 @@ export interface FileRoutesById {
   '/_app/subscriptions': typeof AppSubscriptionsRoute
   '/_app/support': typeof AppSupportRoute
   '/_app/updates': typeof AppUpdatesRoute
+  '/_app/admin/activity': typeof AppAdminActivityRoute
   '/_app/admin/ai': typeof AppAdminAiRoute
   '/_app/admin/surveys': typeof AppAdminSurveysRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
@@ -338,6 +347,7 @@ export interface FileRouteTypes {
     | '/subscriptions'
     | '/support'
     | '/updates'
+    | '/admin/activity'
     | '/admin/ai'
     | '/admin/surveys'
     | '/admin/users'
@@ -371,6 +381,7 @@ export interface FileRouteTypes {
     | '/subscriptions'
     | '/support'
     | '/updates'
+    | '/admin/activity'
     | '/admin/ai'
     | '/admin/surveys'
     | '/admin/users'
@@ -406,6 +417,7 @@ export interface FileRouteTypes {
     | '/_app/subscriptions'
     | '/_app/support'
     | '/_app/updates'
+    | '/_app/admin/activity'
     | '/_app/admin/ai'
     | '/_app/admin/surveys'
     | '/_app/admin/users'
@@ -655,10 +667,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminAiRouteImport
       parentRoute: typeof AppAdminRoute
     }
+    '/_app/admin/activity': {
+      id: '/_app/admin/activity'
+      path: '/activity'
+      fullPath: '/admin/activity'
+      preLoaderRoute: typeof AppAdminActivityRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
   }
 }
 
 interface AppAdminRouteChildren {
+  AppAdminActivityRoute: typeof AppAdminActivityRoute
   AppAdminAiRoute: typeof AppAdminAiRoute
   AppAdminSurveysRoute: typeof AppAdminSurveysRoute
   AppAdminUsersRoute: typeof AppAdminUsersRoute
@@ -666,6 +686,7 @@ interface AppAdminRouteChildren {
 }
 
 const AppAdminRouteChildren: AppAdminRouteChildren = {
+  AppAdminActivityRoute: AppAdminActivityRoute,
   AppAdminAiRoute: AppAdminAiRoute,
   AppAdminSurveysRoute: AppAdminSurveysRoute,
   AppAdminUsersRoute: AppAdminUsersRoute,
@@ -763,3 +784,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
