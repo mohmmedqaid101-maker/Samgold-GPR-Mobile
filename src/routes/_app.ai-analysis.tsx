@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { analyzeGeoData } from "@/server/ai.server";
+import { analyzeGeoData } from "@/lib/ai.server";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_app/ai-analysis")({
