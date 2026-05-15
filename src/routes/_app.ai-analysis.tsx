@@ -1,23 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Brain, Loader2, Send, Sparkles } from "lucide-react";
+import { Brain, Loader2, Send, Sparkles, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { analyzeGeoData } from "@/lib/ai.server";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/_app/ai-analysis")({
   component: AiAnalysisPage,
 });
 
 function AiAnalysisPage() {
+  const { user } = useAuth();
   const { t, lang } = useI18n();
   const [prompt, setPrompt] = useState("");
   const [context, setContext] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
+  const [savingReport, setSavingReport] = useState(false);
 
   const submit = async () => {
     if (!prompt.trim()) return;
@@ -31,12 +34,41 @@ function AiAnalysisPage() {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       setResult(res.content);
+      // Log usage (best-effort, ignore errors)
+      if (user) {
+        await supabase.from("ai_usage_log").insert({
+          user_id: user.id,
+          model: "google/gemini-2.5-flash",
+          endpoint: "analyzeGeoData",
+          tokens_input: Math.ceil((prompt.length + context.length) / 4),
+          tokens_output: Math.ceil(res.content.length / 4),
+        });
+      }
     } catch (e) {
       const { safeErrorMessage } = await import("@/lib/errors");
       toast.error(safeErrorMessage(e, lang));
     } finally {
       setLoading(false);
     }
+  };
+
+  const saveAsReport = async () => {
+    if (!result || !user) return;
+    setSavingReport(true);
+    const title = prompt.slice(0, 80) || (lang === "ar" ? "تحليل AI" : "AI Analysis");
+    const { error } = await supabase.from("reports").insert({
+      user_id: user.id,
+      title,
+      report_type: "ai",
+      summary: result.slice(0, 300),
+      content: `Q: ${prompt}\n\n${context ? `Context: ${context}\n\n` : ""}A: ${result}`,
+    });
+    setSavingReport(false);
+    if (error) {
+      toast.error(lang === "ar" ? "فشل الحفظ" : "Failed to save");
+      return;
+    }
+    toast.success(lang === "ar" ? "تم الحفظ في التقارير" : "Saved to reports");
   };
 
   const examples =
@@ -116,9 +148,15 @@ function AiAnalysisPage() {
 
       {result && (
         <div className="rounded-2xl border border-primary/30 bg-card/60 backdrop-blur p-5">
-          <div className="flex items-center gap-2 mb-3 text-sm font-semibold text-primary">
-            <Sparkles className="h-4 w-4" />
-            {lang === "ar" ? "نتيجة التحليل" : "Analysis result"}
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <Sparkles className="h-4 w-4" />
+              {lang === "ar" ? "نتيجة التحليل" : "Analysis result"}
+            </div>
+            <Button size="sm" variant="outline" onClick={saveAsReport} disabled={savingReport}>
+              {savingReport ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+              {lang === "ar" ? "حفظ كتقرير" : "Save as report"}
+            </Button>
           </div>
           <div className="prose prose-invert prose-sm max-w-none whitespace-pre-wrap leading-relaxed">
             {result}
