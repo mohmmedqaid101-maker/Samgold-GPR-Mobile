@@ -119,7 +119,7 @@ function MapPage() {
         style: `mapbox://styles/mapbox/${styleId}`,
         center: [45.0792, 23.8859], // Saudi Arabia center
         zoom: 4.5,
-        pitch: 45,
+        pitch: 60,
         bearing: -10,
         antialias: true,
       });
@@ -129,6 +129,64 @@ function MapPage() {
         isAr ? "top-left" : "top-right",
       );
       map.addControl(new mapboxgl.ScaleControl({ unit: "metric" }));
+      const apply3D = () => {
+        try {
+          if (!map.getSource("mapbox-dem")) {
+            map.addSource("mapbox-dem", {
+              type: "raster-dem",
+              url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+              tileSize: 512,
+              maxzoom: 14,
+            });
+          }
+          map.setTerrain({ source: "mapbox-dem", exaggeration: 1.4 });
+          if (!map.getLayer("sky")) {
+            map.addLayer({
+              id: "sky",
+              type: "sky",
+              paint: {
+                "sky-type": "atmosphere",
+                "sky-atmosphere-sun": [0.0, 90.0],
+                "sky-atmosphere-sun-intensity": 15,
+              },
+            });
+          }
+          map.setFog({
+            color: "rgb(186, 210, 235)",
+            "high-color": "rgb(36, 92, 223)",
+            "horizon-blend": 0.02,
+            "space-color": "rgb(11, 11, 25)",
+            "star-intensity": 0.6,
+          });
+          // 3D buildings (only on streets style)
+          const layers = map.getStyle().layers;
+          const labelLayerId = layers?.find(
+            (l) => l.type === "symbol" && (l.layout as { "text-field"?: unknown })?.["text-field"],
+          )?.id;
+          if (!map.getLayer("3d-buildings")) {
+            map.addLayer(
+              {
+                id: "3d-buildings",
+                source: "composite",
+                "source-layer": "building",
+                filter: ["==", "extrude", "true"],
+                type: "fill-extrusion",
+                minzoom: 14,
+                paint: {
+                  "fill-extrusion-color": "#caa64b",
+                  "fill-extrusion-height": ["get", "height"],
+                  "fill-extrusion-base": ["get", "min_height"],
+                  "fill-extrusion-opacity": 0.75,
+                },
+              },
+              labelLayerId,
+            );
+          }
+        } catch (err) {
+          console.warn("3D layers skipped:", err);
+        }
+      };
+      map.on("style.load", apply3D);
       mapRef.current = map;
     } catch (e) {
       console.error("Mapbox init failed", e);
@@ -178,7 +236,19 @@ function MapPage() {
           border: 2px solid white;
           box-shadow: 0 0 0 2px ${p.kind === "target" ? "hsl(45 95% 55% / 0.4)" : "hsl(200 90% 55% / 0.4)"}, 0 4px 12px rgba(0,0,0,0.3);
         `;
-        el.addEventListener("click", () => setSelected({ kind: p.kind, data: p.data }));
+        el.addEventListener("click", () => {
+          setSelected({ kind: p.kind, data: p.data });
+          // Cinematic fly-to
+          map.flyTo({
+            center: [p.lng, p.lat],
+            zoom: 16,
+            pitch: 70,
+            bearing: Math.random() * 60 - 30,
+            speed: 1.2,
+            curve: 1.6,
+            essential: true,
+          });
+        });
         const marker = new mapboxgl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(map);
         markersRef.current.push(marker);
       });
