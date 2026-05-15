@@ -543,6 +543,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_ai_usage_summary: {
+        Args: { days?: number }
+        Returns: {
+          calls: number
+          credits: number
+          model: string
+          tokens_in: number
+          tokens_out: number
+        }[]
+      }
+      admin_list_users: {
+        Args: { max_rows?: number; search?: string }
+        Returns: {
+          avatar_url: string
+          created_at: string
+          display_name: string
+          language: string
+          role: string
+          subscription_tier: string
+          user_id: string
+        }[]
+      }
+      claim_first_admin: { Args: never; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
