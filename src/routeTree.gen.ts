@@ -9,38 +9,435 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppUpdatesRouteImport } from './routes/_app.updates'
+import { Route as AppSupportRouteImport } from './routes/_app.support'
+import { Route as AppSubscriptionsRouteImport } from './routes/_app.subscriptions'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppSecurityRouteImport } from './routes/_app.security'
+import { Route as AppScannerRouteImport } from './routes/_app.scanner'
+import { Route as AppReportsRouteImport } from './routes/_app.reports'
+import { Route as AppProjectsRouteImport } from './routes/_app.projects'
+import { Route as AppPrivacyRouteImport } from './routes/_app.privacy'
+import { Route as AppPermissionsRouteImport } from './routes/_app.permissions'
+import { Route as AppPerformanceRouteImport } from './routes/_app.performance'
+import { Route as AppNotificationsRouteImport } from './routes/_app.notifications'
+import { Route as AppMapRouteImport } from './routes/_app.map'
+import { Route as AppFrequencyRouteImport } from './routes/_app.frequency'
+import { Route as AppDevicesRouteImport } from './routes/_app.devices'
+import { Route as AppDataRouteImport } from './routes/_app.data'
+import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppAiAnalysisRouteImport } from './routes/_app.ai-analysis'
+import { Route as AppAdminRouteImport } from './routes/_app.admin'
+import { Route as AppActivityRouteImport } from './routes/_app.activity'
+import { Route as AppAccountRouteImport } from './routes/_app.account'
+import { Route as AppAboutRouteImport } from './routes/_app.about'
+import { Route as AppAdminIndexRouteImport } from './routes/_app.admin.index'
+import { Route as AppScannerTargetsRouteImport } from './routes/_app.scanner.targets'
+import { Route as AppScannerReceiveRouteImport } from './routes/_app.scanner.receive'
+import { Route as AppMapLayersRouteImport } from './routes/_app.map.layers'
+import { Route as AppMapCinematicRouteImport } from './routes/_app.map.cinematic'
+import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
+import { Route as AppAdminSurveysRouteImport } from './routes/_app.admin.surveys'
+import { Route as AppAdminAiRouteImport } from './routes/_app.admin.ai'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppUpdatesRoute = AppUpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSupportRoute = AppSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSubscriptionsRoute = AppSubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSecurityRoute = AppSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppScannerRoute = AppScannerRouteImport.update({
+  id: '/scanner',
+  path: '/scanner',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProjectsRoute = AppProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPrivacyRoute = AppPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPermissionsRoute = AppPermissionsRouteImport.update({
+  id: '/permissions',
+  path: '/permissions',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPerformanceRoute = AppPerformanceRouteImport.update({
+  id: '/performance',
+  path: '/performance',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotificationsRoute = AppNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMapRoute = AppMapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFrequencyRoute = AppFrequencyRouteImport.update({
+  id: '/frequency',
+  path: '/frequency',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDevicesRoute = AppDevicesRouteImport.update({
+  id: '/devices',
+  path: '/devices',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDataRoute = AppDataRouteImport.update({
+  id: '/data',
+  path: '/data',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAiAnalysisRoute = AppAiAnalysisRouteImport.update({
+  id: '/ai-analysis',
+  path: '/ai-analysis',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppActivityRoute = AppActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAccountRoute = AppAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAboutRoute = AppAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAdminRoute,
+} as any)
+const AppScannerTargetsRoute = AppScannerTargetsRouteImport.update({
+  id: '/targets',
+  path: '/targets',
+  getParentRoute: () => AppScannerRoute,
+} as any)
+const AppScannerReceiveRoute = AppScannerReceiveRouteImport.update({
+  id: '/receive',
+  path: '/receive',
+  getParentRoute: () => AppScannerRoute,
+} as any)
+const AppMapLayersRoute = AppMapLayersRouteImport.update({
+  id: '/layers',
+  path: '/layers',
+  getParentRoute: () => AppMapRoute,
+} as any)
+const AppMapCinematicRoute = AppMapCinematicRouteImport.update({
+  id: '/cinematic',
+  path: '/cinematic',
+  getParentRoute: () => AppMapRoute,
+} as any)
+const AppAdminUsersRoute = AppAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AppAdminRoute,
+} as any)
+const AppAdminSurveysRoute = AppAdminSurveysRouteImport.update({
+  id: '/surveys',
+  path: '/surveys',
+  getParentRoute: () => AppAdminRoute,
+} as any)
+const AppAdminAiRoute = AppAdminAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => AppAdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/about': typeof AppAboutRoute
+  '/account': typeof AppAccountRoute
+  '/activity': typeof AppActivityRoute
+  '/admin': typeof AppAdminRouteWithChildren
+  '/ai-analysis': typeof AppAiAnalysisRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/data': typeof AppDataRoute
+  '/devices': typeof AppDevicesRoute
+  '/frequency': typeof AppFrequencyRoute
+  '/map': typeof AppMapRouteWithChildren
+  '/notifications': typeof AppNotificationsRoute
+  '/performance': typeof AppPerformanceRoute
+  '/permissions': typeof AppPermissionsRoute
+  '/privacy': typeof AppPrivacyRoute
+  '/projects': typeof AppProjectsRoute
+  '/reports': typeof AppReportsRoute
+  '/scanner': typeof AppScannerRouteWithChildren
+  '/security': typeof AppSecurityRoute
+  '/settings': typeof AppSettingsRoute
+  '/subscriptions': typeof AppSubscriptionsRoute
+  '/support': typeof AppSupportRoute
+  '/updates': typeof AppUpdatesRoute
+  '/admin/ai': typeof AppAdminAiRoute
+  '/admin/surveys': typeof AppAdminSurveysRoute
+  '/admin/users': typeof AppAdminUsersRoute
+  '/map/cinematic': typeof AppMapCinematicRoute
+  '/map/layers': typeof AppMapLayersRoute
+  '/scanner/receive': typeof AppScannerReceiveRoute
+  '/scanner/targets': typeof AppScannerTargetsRoute
+  '/admin/': typeof AppAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/about': typeof AppAboutRoute
+  '/account': typeof AppAccountRoute
+  '/activity': typeof AppActivityRoute
+  '/ai-analysis': typeof AppAiAnalysisRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/data': typeof AppDataRoute
+  '/devices': typeof AppDevicesRoute
+  '/frequency': typeof AppFrequencyRoute
+  '/map': typeof AppMapRouteWithChildren
+  '/notifications': typeof AppNotificationsRoute
+  '/performance': typeof AppPerformanceRoute
+  '/permissions': typeof AppPermissionsRoute
+  '/privacy': typeof AppPrivacyRoute
+  '/projects': typeof AppProjectsRoute
+  '/reports': typeof AppReportsRoute
+  '/scanner': typeof AppScannerRouteWithChildren
+  '/security': typeof AppSecurityRoute
+  '/settings': typeof AppSettingsRoute
+  '/subscriptions': typeof AppSubscriptionsRoute
+  '/support': typeof AppSupportRoute
+  '/updates': typeof AppUpdatesRoute
+  '/admin/ai': typeof AppAdminAiRoute
+  '/admin/surveys': typeof AppAdminSurveysRoute
+  '/admin/users': typeof AppAdminUsersRoute
+  '/map/cinematic': typeof AppMapCinematicRoute
+  '/map/layers': typeof AppMapLayersRoute
+  '/scanner/receive': typeof AppScannerReceiveRoute
+  '/scanner/targets': typeof AppScannerTargetsRoute
+  '/admin': typeof AppAdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_app/about': typeof AppAboutRoute
+  '/_app/account': typeof AppAccountRoute
+  '/_app/activity': typeof AppActivityRoute
+  '/_app/admin': typeof AppAdminRouteWithChildren
+  '/_app/ai-analysis': typeof AppAiAnalysisRoute
+  '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/data': typeof AppDataRoute
+  '/_app/devices': typeof AppDevicesRoute
+  '/_app/frequency': typeof AppFrequencyRoute
+  '/_app/map': typeof AppMapRouteWithChildren
+  '/_app/notifications': typeof AppNotificationsRoute
+  '/_app/performance': typeof AppPerformanceRoute
+  '/_app/permissions': typeof AppPermissionsRoute
+  '/_app/privacy': typeof AppPrivacyRoute
+  '/_app/projects': typeof AppProjectsRoute
+  '/_app/reports': typeof AppReportsRoute
+  '/_app/scanner': typeof AppScannerRouteWithChildren
+  '/_app/security': typeof AppSecurityRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/subscriptions': typeof AppSubscriptionsRoute
+  '/_app/support': typeof AppSupportRoute
+  '/_app/updates': typeof AppUpdatesRoute
+  '/_app/admin/ai': typeof AppAdminAiRoute
+  '/_app/admin/surveys': typeof AppAdminSurveysRoute
+  '/_app/admin/users': typeof AppAdminUsersRoute
+  '/_app/map/cinematic': typeof AppMapCinematicRoute
+  '/_app/map/layers': typeof AppMapLayersRoute
+  '/_app/scanner/receive': typeof AppScannerReceiveRoute
+  '/_app/scanner/targets': typeof AppScannerTargetsRoute
+  '/_app/admin/': typeof AppAdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/about'
+    | '/account'
+    | '/activity'
+    | '/admin'
+    | '/ai-analysis'
+    | '/dashboard'
+    | '/data'
+    | '/devices'
+    | '/frequency'
+    | '/map'
+    | '/notifications'
+    | '/performance'
+    | '/permissions'
+    | '/privacy'
+    | '/projects'
+    | '/reports'
+    | '/scanner'
+    | '/security'
+    | '/settings'
+    | '/subscriptions'
+    | '/support'
+    | '/updates'
+    | '/admin/ai'
+    | '/admin/surveys'
+    | '/admin/users'
+    | '/map/cinematic'
+    | '/map/layers'
+    | '/scanner/receive'
+    | '/scanner/targets'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/about'
+    | '/account'
+    | '/activity'
+    | '/ai-analysis'
+    | '/dashboard'
+    | '/data'
+    | '/devices'
+    | '/frequency'
+    | '/map'
+    | '/notifications'
+    | '/performance'
+    | '/permissions'
+    | '/privacy'
+    | '/projects'
+    | '/reports'
+    | '/scanner'
+    | '/security'
+    | '/settings'
+    | '/subscriptions'
+    | '/support'
+    | '/updates'
+    | '/admin/ai'
+    | '/admin/surveys'
+    | '/admin/users'
+    | '/map/cinematic'
+    | '/map/layers'
+    | '/scanner/receive'
+    | '/scanner/targets'
+    | '/admin'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/auth'
+    | '/_app/about'
+    | '/_app/account'
+    | '/_app/activity'
+    | '/_app/admin'
+    | '/_app/ai-analysis'
+    | '/_app/dashboard'
+    | '/_app/data'
+    | '/_app/devices'
+    | '/_app/frequency'
+    | '/_app/map'
+    | '/_app/notifications'
+    | '/_app/performance'
+    | '/_app/permissions'
+    | '/_app/privacy'
+    | '/_app/projects'
+    | '/_app/reports'
+    | '/_app/scanner'
+    | '/_app/security'
+    | '/_app/settings'
+    | '/_app/subscriptions'
+    | '/_app/support'
+    | '/_app/updates'
+    | '/_app/admin/ai'
+    | '/_app/admin/surveys'
+    | '/_app/admin/users'
+    | '/_app/map/cinematic'
+    | '/_app/map/layers'
+    | '/_app/scanner/receive'
+    | '/_app/scanner/targets'
+    | '/_app/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +445,320 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/updates': {
+      id: '/_app/updates'
+      path: '/updates'
+      fullPath: '/updates'
+      preLoaderRoute: typeof AppUpdatesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/support': {
+      id: '/_app/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof AppSupportRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/subscriptions': {
+      id: '/_app/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/subscriptions'
+      preLoaderRoute: typeof AppSubscriptionsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/security': {
+      id: '/_app/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof AppSecurityRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/scanner': {
+      id: '/_app/scanner'
+      path: '/scanner'
+      fullPath: '/scanner'
+      preLoaderRoute: typeof AppScannerRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports': {
+      id: '/_app/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/projects': {
+      id: '/_app/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof AppProjectsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/privacy': {
+      id: '/_app/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof AppPrivacyRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/permissions': {
+      id: '/_app/permissions'
+      path: '/permissions'
+      fullPath: '/permissions'
+      preLoaderRoute: typeof AppPermissionsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/performance': {
+      id: '/_app/performance'
+      path: '/performance'
+      fullPath: '/performance'
+      preLoaderRoute: typeof AppPerformanceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/notifications': {
+      id: '/_app/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AppNotificationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/map': {
+      id: '/_app/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof AppMapRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/frequency': {
+      id: '/_app/frequency'
+      path: '/frequency'
+      fullPath: '/frequency'
+      preLoaderRoute: typeof AppFrequencyRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/devices': {
+      id: '/_app/devices'
+      path: '/devices'
+      fullPath: '/devices'
+      preLoaderRoute: typeof AppDevicesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/data': {
+      id: '/_app/data'
+      path: '/data'
+      fullPath: '/data'
+      preLoaderRoute: typeof AppDataRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/ai-analysis': {
+      id: '/_app/ai-analysis'
+      path: '/ai-analysis'
+      fullPath: '/ai-analysis'
+      preLoaderRoute: typeof AppAiAnalysisRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin': {
+      id: '/_app/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AppAdminRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/activity': {
+      id: '/_app/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof AppActivityRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/account': {
+      id: '/_app/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AppAccountRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/about': {
+      id: '/_app/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AppAboutRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/': {
+      id: '/_app/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AppAdminIndexRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/_app/scanner/targets': {
+      id: '/_app/scanner/targets'
+      path: '/targets'
+      fullPath: '/scanner/targets'
+      preLoaderRoute: typeof AppScannerTargetsRouteImport
+      parentRoute: typeof AppScannerRoute
+    }
+    '/_app/scanner/receive': {
+      id: '/_app/scanner/receive'
+      path: '/receive'
+      fullPath: '/scanner/receive'
+      preLoaderRoute: typeof AppScannerReceiveRouteImport
+      parentRoute: typeof AppScannerRoute
+    }
+    '/_app/map/layers': {
+      id: '/_app/map/layers'
+      path: '/layers'
+      fullPath: '/map/layers'
+      preLoaderRoute: typeof AppMapLayersRouteImport
+      parentRoute: typeof AppMapRoute
+    }
+    '/_app/map/cinematic': {
+      id: '/_app/map/cinematic'
+      path: '/cinematic'
+      fullPath: '/map/cinematic'
+      preLoaderRoute: typeof AppMapCinematicRouteImport
+      parentRoute: typeof AppMapRoute
+    }
+    '/_app/admin/users': {
+      id: '/_app/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AppAdminUsersRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/_app/admin/surveys': {
+      id: '/_app/admin/surveys'
+      path: '/surveys'
+      fullPath: '/admin/surveys'
+      preLoaderRoute: typeof AppAdminSurveysRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/_app/admin/ai': {
+      id: '/_app/admin/ai'
+      path: '/ai'
+      fullPath: '/admin/ai'
+      preLoaderRoute: typeof AppAdminAiRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
   }
 }
 
+interface AppAdminRouteChildren {
+  AppAdminAiRoute: typeof AppAdminAiRoute
+  AppAdminSurveysRoute: typeof AppAdminSurveysRoute
+  AppAdminUsersRoute: typeof AppAdminUsersRoute
+  AppAdminIndexRoute: typeof AppAdminIndexRoute
+}
+
+const AppAdminRouteChildren: AppAdminRouteChildren = {
+  AppAdminAiRoute: AppAdminAiRoute,
+  AppAdminSurveysRoute: AppAdminSurveysRoute,
+  AppAdminUsersRoute: AppAdminUsersRoute,
+  AppAdminIndexRoute: AppAdminIndexRoute,
+}
+
+const AppAdminRouteWithChildren = AppAdminRoute._addFileChildren(
+  AppAdminRouteChildren,
+)
+
+interface AppMapRouteChildren {
+  AppMapCinematicRoute: typeof AppMapCinematicRoute
+  AppMapLayersRoute: typeof AppMapLayersRoute
+}
+
+const AppMapRouteChildren: AppMapRouteChildren = {
+  AppMapCinematicRoute: AppMapCinematicRoute,
+  AppMapLayersRoute: AppMapLayersRoute,
+}
+
+const AppMapRouteWithChildren =
+  AppMapRoute._addFileChildren(AppMapRouteChildren)
+
+interface AppScannerRouteChildren {
+  AppScannerReceiveRoute: typeof AppScannerReceiveRoute
+  AppScannerTargetsRoute: typeof AppScannerTargetsRoute
+}
+
+const AppScannerRouteChildren: AppScannerRouteChildren = {
+  AppScannerReceiveRoute: AppScannerReceiveRoute,
+  AppScannerTargetsRoute: AppScannerTargetsRoute,
+}
+
+const AppScannerRouteWithChildren = AppScannerRoute._addFileChildren(
+  AppScannerRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppAboutRoute: typeof AppAboutRoute
+  AppAccountRoute: typeof AppAccountRoute
+  AppActivityRoute: typeof AppActivityRoute
+  AppAdminRoute: typeof AppAdminRouteWithChildren
+  AppAiAnalysisRoute: typeof AppAiAnalysisRoute
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppDataRoute: typeof AppDataRoute
+  AppDevicesRoute: typeof AppDevicesRoute
+  AppFrequencyRoute: typeof AppFrequencyRoute
+  AppMapRoute: typeof AppMapRouteWithChildren
+  AppNotificationsRoute: typeof AppNotificationsRoute
+  AppPerformanceRoute: typeof AppPerformanceRoute
+  AppPermissionsRoute: typeof AppPermissionsRoute
+  AppPrivacyRoute: typeof AppPrivacyRoute
+  AppProjectsRoute: typeof AppProjectsRoute
+  AppReportsRoute: typeof AppReportsRoute
+  AppScannerRoute: typeof AppScannerRouteWithChildren
+  AppSecurityRoute: typeof AppSecurityRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppSubscriptionsRoute: typeof AppSubscriptionsRoute
+  AppSupportRoute: typeof AppSupportRoute
+  AppUpdatesRoute: typeof AppUpdatesRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAboutRoute: AppAboutRoute,
+  AppAccountRoute: AppAccountRoute,
+  AppActivityRoute: AppActivityRoute,
+  AppAdminRoute: AppAdminRouteWithChildren,
+  AppAiAnalysisRoute: AppAiAnalysisRoute,
+  AppDashboardRoute: AppDashboardRoute,
+  AppDataRoute: AppDataRoute,
+  AppDevicesRoute: AppDevicesRoute,
+  AppFrequencyRoute: AppFrequencyRoute,
+  AppMapRoute: AppMapRouteWithChildren,
+  AppNotificationsRoute: AppNotificationsRoute,
+  AppPerformanceRoute: AppPerformanceRoute,
+  AppPermissionsRoute: AppPermissionsRoute,
+  AppPrivacyRoute: AppPrivacyRoute,
+  AppProjectsRoute: AppProjectsRoute,
+  AppReportsRoute: AppReportsRoute,
+  AppScannerRoute: AppScannerRouteWithChildren,
+  AppSecurityRoute: AppSecurityRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppSubscriptionsRoute: AppSubscriptionsRoute,
+  AppSupportRoute: AppSupportRoute,
+  AppUpdatesRoute: AppUpdatesRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
