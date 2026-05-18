@@ -56,19 +56,29 @@ function subscribePrivate(
   timeoutMs = 8000,
 ): Promise<"SUBSCRIBED" | "CHANNEL_ERROR" | "TIMED_OUT" | "CLOSED"> {
   return new Promise((resolve) => {
-    // ensure realtime uses fresh token
     client.auth.getSession().then(({ data: { session } }) => {
       if (session?.access_token) client.realtime.setAuth(session.access_token);
       const ch = client.channel(topic, { config: { private: true } });
-      const timer = setTimeout(() => {
-        client.removeChannel(ch);
-        resolve("TIMED_OUT");
-      }, timeoutMs);
+      let settled = false;
+      const finish = (status: any) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        // Defer cleanup to avoid recursive callback into channel during subscribe()
+        setTimeout(() => {
+          try { client.removeChannel(ch); } catch {}
+        }, 0);
+        resolve(status);
+      };
+      const timer = setTimeout(() => finish("TIMED_OUT"), timeoutMs);
       ch.subscribe((status) => {
-        if (status === "SUBSCRIBED" || status === "CHANNEL_ERROR" || status === "CLOSED" || status === "TIMED_OUT") {
-          clearTimeout(timer);
-          client.removeChannel(ch);
-          resolve(status as any);
+        if (
+          status === "SUBSCRIBED" ||
+          status === "CHANNEL_ERROR" ||
+          status === "CLOSED" ||
+          status === "TIMED_OUT"
+        ) {
+          finish(status);
         }
       });
     });
