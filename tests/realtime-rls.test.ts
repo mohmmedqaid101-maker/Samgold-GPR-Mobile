@@ -115,12 +115,9 @@ describe("Realtime RLS — user:{auth.uid()} topics only", () => {
       expect(res.status).toBe(202);
     });
 
-    // NOTE: The /realtime/v1/api/broadcast REST endpoint always returns 202
-    // (fire-and-forget). RLS rejection happens silently inside realtime.send
- on the INSERT, so we cannot assert blocking via HTTP status here.
-    // Delivery-side blocking is proven by the WebSocket subscribe tests below:
-    // if user A cannot SELECT on user:{B}, they cannot read or be delivered
-    // any message on that topic regardless of who broadcasts.
+    // The /realtime/v1/api/broadcast REST endpoint is fire-and-forget (always
+    // returns 202). RLS rejection on INSERT is silent at the HTTP layer, so
+    // we verify isolation through actual delivery instead.
     it("delivers user A's broadcast to themselves but NOT to user B (cross-user isolation)", async () => {
       const ownTopic = `user:${userA.id}`;
       const foreignTopic = `user:${userB.id}`;
