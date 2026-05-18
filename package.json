@@ -86,7 +86,9 @@
     "dev": "vite dev",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:rls": "vitest run tests/realtime-rls.test.ts"
   },
   "sideEffects": false,
   "type": "module"
