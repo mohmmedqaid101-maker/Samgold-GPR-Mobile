@@ -95,7 +95,10 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run --exclude tests/realtime-rls.test.ts",
-    "test:rls": "vitest run tests/realtime-rls.test.ts"
+    "test:rls": "vitest run tests/realtime-rls.test.ts",
+    "cap:sync": "vite build && cap sync android",
+    "cap:open": "cap open android",
+    "cap:add:android": "cap add android"
   },
   "sideEffects": false,
   "type": "module"
