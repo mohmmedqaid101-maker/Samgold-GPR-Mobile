@@ -52,6 +52,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { LangToggle } from "@/components/LangToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useRoles } from "@/hooks/useRoles";
@@ -436,6 +437,7 @@ function AppLayout() {
             </div>
             <div className="flex items-center gap-2">
               <LangToggle />
+              <ThemeToggle />
               <Button size="sm" variant="ghost" onClick={() => signOut()}>
                 <LogOut className="h-4 w-4" />
               </Button>
