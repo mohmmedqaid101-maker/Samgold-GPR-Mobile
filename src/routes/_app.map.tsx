@@ -128,6 +128,42 @@ function MapPage() {
         isAr ? "top-left" : "top-right",
       );
       map.addControl(new mapboxgl.ScaleControl({ unit: "metric" }));
+      // Surface tile/auth failures clearly instead of leaving a gray canvas.
+      let notifiedError = false;
+      map.on("error", (ev: { error?: { status?: number; message?: string } }) => {
+        const status = ev?.error?.status;
+        const msg = ev?.error?.message ?? "";
+        if (notifiedError) return;
+        if (status === 401 || status === 403 || /access token|Unauthorized/i.test(msg)) {
+          notifiedError = true;
+          toast.error(
+            isAr
+              ? "توكن Mapbox غير صالح أو منتهي. أضف توكن خاص بك."
+              : "Mapbox token is invalid or expired. Add your own token.",
+            { duration: 6000 },
+          );
+          setShowSettings(true);
+        } else if (status && status >= 400) {
+          notifiedError = true;
+          toast.error(
+            isAr
+              ? `فشل تحميل بلاطات الخريطة (${status})`
+              : `Map tiles failed to load (${status})`,
+          );
+        }
+      });
+      // If tiles never load within 6s, assume token/network issue and prompt.
+      const watchdog = window.setTimeout(() => {
+        if (!notifiedError && !map.areTilesLoaded()) {
+          toast.message(
+            isAr
+              ? "الخريطة لا تستجيب. تحقّق من اتصال الإنترنت أو أدخل توكن Mapbox خاص بك."
+              : "Map is not responding. Check your connection or add your own Mapbox token.",
+          );
+          setShowSettings(true);
+        }
+      }, 6000);
+      map.once("idle", () => window.clearTimeout(watchdog));
       const apply3D = () => {
         try {
           if (!map.getSource("mapbox-dem")) {
