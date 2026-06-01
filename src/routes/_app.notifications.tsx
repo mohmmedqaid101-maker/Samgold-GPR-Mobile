@@ -14,12 +14,12 @@ function Notifications() {
   const { lang } = useI18n();
   const { items, loading, unreadCount, markAllRead, markRead, remove } = useNotifications();
 
-  const colors = {
+  const colors: Record<string, string> = {
     info: "bg-accent/10 text-accent border-accent/30",
     warning: "bg-amber-500/10 text-amber-400 border-amber-500/30",
     success: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
     error: "bg-destructive/10 text-destructive border-destructive/30",
-  } as const;
+  };
 
   const handleMarkAll = async () => {
     try {
@@ -74,7 +74,7 @@ function Notifications() {
                 n.read ? "border-border/40 bg-card/30" : "border-primary/40 bg-card/60"
               }`}
             >
-              <div className={`h-9 w-9 rounded-lg flex items-center justify-center border shrink-0 ${colors[n.notification_type]}`}>
+              <div className={`h-9 w-9 rounded-lg flex items-center justify-center border shrink-0 ${colors[n.notification_type] ?? colors.info}`}>
                 <Bell className="h-4 w-4" />
               </div>
               <div className="flex-1 min-w-0">
