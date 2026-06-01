@@ -174,7 +174,6 @@ function MapPage() {
         new maplibregl.GeolocateControl({
           positionOptions: { enableHighAccuracy: true },
           trackUserLocation: true,
-          showUserHeading: true,
         }),
         isAr ? "top-left" : "top-right",
       );
