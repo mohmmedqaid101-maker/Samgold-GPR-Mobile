@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, useMemo } from "react";
-import mapboxgl from "mapbox-gl";
+import maplibregl, { type StyleSpecification } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -10,11 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { MapPin, Crosshair, Layers, Settings, Search } from "lucide-react";
+import { MapPin, Crosshair, Layers, Search, Loader2, LocateFixed } from "lucide-react";
 import { toast } from "sonner";
-
-const DEFAULT_TOKEN =
-  "pk.eyJ1Ijoic2FtbWVkbGFiIiwiYSI6ImNtbmpjODQ1bzBrYjAyeHM0Z280OWZiZmwifQ.pnw4JN4dUUVSHVdN8_p_qA";
 
 type SurveyRow = {
   id: string;
@@ -38,29 +36,109 @@ type TargetRow = {
   detected_at: string;
 };
 
+type StyleKey = "satellite" | "streets" | "terrain" | "hybrid";
+
+const STYLES: Record<StyleKey, StyleSpecification> = {
+  streets: {
+    version: 8,
+    sources: {
+      osm: {
+        type: "raster",
+        tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+        tileSize: 256,
+        attribution: "© OpenStreetMap contributors",
+        maxzoom: 19,
+      },
+    },
+    layers: [{ id: "osm", type: "raster", source: "osm" }],
+  },
+  satellite: {
+    version: 8,
+    sources: {
+      sat: {
+        type: "raster",
+        tiles: [
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        ],
+        tileSize: 256,
+        attribution: "Tiles © Esri",
+        maxzoom: 19,
+      },
+    },
+    layers: [{ id: "sat", type: "raster", source: "sat" }],
+  },
+  hybrid: {
+    version: 8,
+    sources: {
+      sat: {
+        type: "raster",
+        tiles: [
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        ],
+        tileSize: 256,
+        attribution: "Tiles © Esri",
+        maxzoom: 19,
+      },
+      labels: {
+        type: "raster",
+        tiles: [
+          "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+        ],
+        tileSize: 256,
+        maxzoom: 19,
+      },
+    },
+    layers: [
+      { id: "sat", type: "raster", source: "sat" },
+      { id: "labels", type: "raster", source: "labels" },
+    ],
+  },
+  terrain: {
+    version: 8,
+    sources: {
+      topo: {
+        type: "raster",
+        tiles: ["https://a.tile.opentopomap.org/{z}/{x}/{y}.png"],
+        tileSize: 256,
+        attribution: "© OpenTopoMap (CC-BY-SA)",
+        maxzoom: 17,
+      },
+    },
+    layers: [{ id: "topo", type: "raster", source: "topo" }],
+  },
+};
+
 export const Route = createFileRoute("/_app/map")({
   component: MapPage,
 });
+
+type GeoResult = {
+  display_name: string;
+  lat: string;
+  lon: string;
+};
 
 function MapPage() {
   const { user } = useAuth();
   const { lang, t } = useI18n();
   const isAr = lang === "ar";
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const mapRef = useRef<maplibregl.Map | null>(null);
+  const markersRef = useRef<maplibregl.Marker[]>([]);
+  const meMarkerRef = useRef<maplibregl.Marker | null>(null);
 
-  const [token, setToken] = useState<string>(
-    () => (typeof window !== "undefined" && localStorage.getItem("mapbox_token")) || DEFAULT_TOKEN,
-  );
-  const [tokenInput, setTokenInput] = useState(token);
-  const [showSettings, setShowSettings] = useState(false);
-  const [styleId, setStyleId] = useState<string>("satellite-streets-v12");
+  const [styleKey, setStyleKey] = useState<StyleKey>("satellite");
   const [surveys, setSurveys] = useState<SurveyRow[]>([]);
   const [targets, setTargets] = useState<TargetRow[]>([]);
   const [filterType, setFilterType] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<{ kind: "survey" | "target"; data: SurveyRow | TargetRow } | null>(null);
+
+  // Smart geocoding (Nominatim, free)
+  const [geoQuery, setGeoQuery] = useState("");
+  const [geoResults, setGeoResults] = useState<GeoResult[]>([]);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoOpen, setGeoOpen] = useState(false);
 
   // Load data
   useEffect(() => {
@@ -80,151 +158,30 @@ function MapPage() {
     };
   }, [user]);
 
-  // Realtime
-  useEffect(() => {
-    if (!user) return;
-    const ch = supabase
-      .channel("map-live")
-      .on("postgres_changes", { event: "*", schema: "public", table: "surveys" }, async () => {
-        const { data } = await supabase
-          .from("surveys")
-          .select("*")
-          .not("latitude", "is", null)
-          .not("longitude", "is", null);
-        if (data) setSurveys(data as SurveyRow[]);
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "targets" }, async () => {
-        const { data } = await supabase
-          .from("targets")
-          .select("*")
-          .not("latitude", "is", null)
-          .not("longitude", "is", null);
-        if (data) setTargets(data as TargetRow[]);
-      })
-      .subscribe();
-    return () => {
-      supabase.removeChannel(ch);
-    };
-  }, [user]);
-
   // Init map
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    if (!token || !token.startsWith("pk.")) return;
-    mapboxgl.accessToken = token;
     try {
-      const map = new mapboxgl.Map({
+      const map = new maplibregl.Map({
         container: containerRef.current,
-        style: `mapbox://styles/mapbox/${styleId}`,
-        center: [45.0792, 23.8859], // Saudi Arabia center
-        zoom: 4.5,
-        pitch: 60,
-        bearing: -10,
-        antialias: true,
+        style: STYLES[styleKey],
+        center: [44.1910, 15.3694], // Yemen / Sana'a
+        zoom: 5.5,
+        attributionControl: { compact: true },
       });
-      map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), isAr ? "top-left" : "top-right");
+      map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), isAr ? "top-left" : "top-right");
       map.addControl(
-        new mapboxgl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }),
+        new maplibregl.GeolocateControl({
+          positionOptions: { enableHighAccuracy: true },
+          trackUserLocation: true,
+          showUserHeading: true,
+        }),
         isAr ? "top-left" : "top-right",
       );
-      map.addControl(new mapboxgl.ScaleControl({ unit: "metric" }));
-      // Surface tile/auth failures clearly instead of leaving a gray canvas.
-      let notifiedError = false;
-      map.on("error", (ev: { error?: { status?: number; message?: string } }) => {
-        const status = ev?.error?.status;
-        const msg = ev?.error?.message ?? "";
-        if (notifiedError) return;
-        if (status === 401 || status === 403 || /access token|Unauthorized/i.test(msg)) {
-          notifiedError = true;
-          toast.error(
-            isAr
-              ? "توكن Mapbox غير صالح أو منتهي. أضف توكن خاص بك."
-              : "Mapbox token is invalid or expired. Add your own token.",
-            { duration: 6000 },
-          );
-          setShowSettings(true);
-        } else if (status && status >= 400) {
-          notifiedError = true;
-          toast.error(
-            isAr
-              ? `فشل تحميل بلاطات الخريطة (${status})`
-              : `Map tiles failed to load (${status})`,
-          );
-        }
-      });
-      // If tiles never load within 6s, assume token/network issue and prompt.
-      const watchdog = window.setTimeout(() => {
-        if (!notifiedError && !map.areTilesLoaded()) {
-          toast.message(
-            isAr
-              ? "الخريطة لا تستجيب. تحقّق من اتصال الإنترنت أو أدخل توكن Mapbox خاص بك."
-              : "Map is not responding. Check your connection or add your own Mapbox token.",
-          );
-          setShowSettings(true);
-        }
-      }, 6000);
-      map.once("idle", () => window.clearTimeout(watchdog));
-      const apply3D = () => {
-        try {
-          if (!map.getSource("mapbox-dem")) {
-            map.addSource("mapbox-dem", {
-              type: "raster-dem",
-              url: "mapbox://mapbox.mapbox-terrain-dem-v1",
-              tileSize: 512,
-              maxzoom: 14,
-            });
-          }
-          map.setTerrain({ source: "mapbox-dem", exaggeration: 1.4 });
-          if (!map.getLayer("sky")) {
-            map.addLayer({
-              id: "sky",
-              type: "sky",
-              paint: {
-                "sky-type": "atmosphere",
-                "sky-atmosphere-sun": [0.0, 90.0],
-                "sky-atmosphere-sun-intensity": 15,
-              },
-            });
-          }
-          map.setFog({
-            color: "rgb(186, 210, 235)",
-            "high-color": "rgb(36, 92, 223)",
-            "horizon-blend": 0.02,
-            "space-color": "rgb(11, 11, 25)",
-            "star-intensity": 0.6,
-          });
-          // 3D buildings (only on streets style)
-          const layers = map.getStyle().layers;
-          const labelLayerId = layers?.find(
-            (l) => l.type === "symbol" && (l.layout as { "text-field"?: unknown })?.["text-field"],
-          )?.id;
-          if (!map.getLayer("3d-buildings")) {
-            map.addLayer(
-              {
-                id: "3d-buildings",
-                source: "composite",
-                "source-layer": "building",
-                filter: ["==", "extrude", "true"],
-                type: "fill-extrusion",
-                minzoom: 14,
-                paint: {
-                  "fill-extrusion-color": "#caa64b",
-                  "fill-extrusion-height": ["get", "height"],
-                  "fill-extrusion-base": ["get", "min_height"],
-                  "fill-extrusion-opacity": 0.75,
-                },
-              },
-              labelLayerId,
-            );
-          }
-        } catch (err) {
-          console.warn("3D layers skipped:", err);
-        }
-      };
-      map.on("style.load", apply3D);
+      map.addControl(new maplibregl.ScaleControl({ unit: "metric" }));
       mapRef.current = map;
     } catch (e) {
-      console.error("Mapbox init failed", e);
+      console.error("Map init failed", e);
       toast.error(isAr ? "فشل تحميل الخريطة" : "Map failed to load");
     }
     return () => {
@@ -232,18 +189,18 @@ function MapPage() {
       mapRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, []);
 
   // Style change
   useEffect(() => {
-    if (mapRef.current) mapRef.current.setStyle(`mapbox://styles/mapbox/${styleId}`);
-  }, [styleId]);
+    if (mapRef.current) mapRef.current.setStyle(STYLES[styleKey]);
+  }, [styleKey]);
 
   // Filtered points
   const points = useMemo(() => {
     const q = search.trim().toLowerCase();
     const sPts = surveys
-      .filter((s) => filterType === "all" || filterType === "surveys")
+      .filter(() => filterType === "all" || filterType === "surveys")
       .filter((s) => !q || s.title.toLowerCase().includes(q) || (s.location ?? "").toLowerCase().includes(q))
       .map((s) => ({ kind: "survey" as const, data: s, lat: s.latitude!, lng: s.longitude! }));
     const tPts = targets
@@ -263,60 +220,113 @@ function MapPage() {
       points.forEach((p) => {
         const el = document.createElement("div");
         el.className = "cursor-pointer";
+        const isTarget = p.kind === "target";
         el.style.cssText = `
-          width: ${p.kind === "target" ? 16 : 20}px;
-          height: ${p.kind === "target" ? 16 : 20}px;
+          width: ${isTarget ? 16 : 20}px;
+          height: ${isTarget ? 16 : 20}px;
           border-radius: 9999px;
-          background: ${p.kind === "target" ? "hsl(45 95% 55%)" : "hsl(200 90% 55%)"};
+          background: ${isTarget ? "hsl(45 95% 55%)" : "hsl(200 90% 55%)"};
           border: 2px solid white;
-          box-shadow: 0 0 0 2px ${p.kind === "target" ? "hsl(45 95% 55% / 0.4)" : "hsl(200 90% 55% / 0.4)"}, 0 4px 12px rgba(0,0,0,0.3);
+          box-shadow: 0 0 0 2px ${isTarget ? "hsl(45 95% 55% / 0.4)" : "hsl(200 90% 55% / 0.4)"}, 0 4px 12px rgba(0,0,0,0.3);
         `;
         el.addEventListener("click", () => {
           setSelected({ kind: p.kind, data: p.data });
-          // Cinematic fly-to
-          map.flyTo({
-            center: [p.lng, p.lat],
-            zoom: 16,
-            pitch: 70,
-            bearing: Math.random() * 60 - 30,
-            speed: 1.2,
-            curve: 1.6,
-            essential: true,
-          });
+          map.flyTo({ center: [p.lng, p.lat], zoom: 15, speed: 1.2, essential: true });
         });
-        const marker = new mapboxgl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(map);
+        const marker = new maplibregl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(map);
         markersRef.current.push(marker);
       });
-      // Fit bounds
       if (points.length > 0) {
-        const bounds = new mapboxgl.LngLatBounds();
+        const bounds = new maplibregl.LngLatBounds();
         points.forEach((p) => bounds.extend([p.lng, p.lat]));
         map.fitBounds(bounds, { padding: 80, maxZoom: 12, duration: 800 });
       }
     };
     if (map.isStyleLoaded()) render();
-    else map.once("style.load", render);
+    else map.once("load", render);
   }, [points]);
 
-  const targetTypes = useMemo(() => {
-    const set = new Set(targets.map((t) => t.target_type));
-    return Array.from(set);
-  }, [targets]);
+  const targetTypes = useMemo(() => Array.from(new Set(targets.map((t) => t.target_type))), [targets]);
 
-  const saveToken = () => {
-    if (!tokenInput.startsWith("pk.")) {
-      toast.error(isAr ? "التوكن يجب أن يبدأ بـ pk." : "Token must start with pk.");
+  // Smart search (Nominatim debounce)
+  useEffect(() => {
+    const q = geoQuery.trim();
+    if (q.length < 2) {
+      setGeoResults([]);
       return;
     }
-    localStorage.setItem("mapbox_token", tokenInput);
-    setToken(tokenInput);
-    setShowSettings(false);
-    toast.success(isAr ? "تم حفظ التوكن" : "Token saved");
-    // Force remount
-    if (mapRef.current) {
-      mapRef.current.remove();
-      mapRef.current = null;
+    // Numeric coordinate input "lat,lng"
+    const m = q.match(/^\s*(-?\d+(?:\.\d+)?)\s*[,\s]\s*(-?\d+(?:\.\d+)?)\s*$/);
+    if (m) {
+      const lat = parseFloat(m[1]);
+      const lon = parseFloat(m[2]);
+      if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+        setGeoResults([{ display_name: `${lat}, ${lon}`, lat: String(lat), lon: String(lon) }]);
+        return;
+      }
     }
+    setGeoLoading(true);
+    const ctrl = new AbortController();
+    const handle = window.setTimeout(async () => {
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=6&accept-language=${isAr ? "ar" : "en"}&q=${encodeURIComponent(q)}`;
+        const res = await fetch(url, { signal: ctrl.signal, headers: { Accept: "application/json" } });
+        if (!res.ok) throw new Error("search failed");
+        const data: GeoResult[] = await res.json();
+        setGeoResults(data);
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") setGeoResults([]);
+      } finally {
+        setGeoLoading(false);
+      }
+    }, 350);
+    return () => {
+      ctrl.abort();
+      window.clearTimeout(handle);
+    };
+  }, [geoQuery, isAr]);
+
+  const flyToResult = (r: GeoResult) => {
+    const lat = parseFloat(r.lat);
+    const lon = parseFloat(r.lon);
+    mapRef.current?.flyTo({ center: [lon, lat], zoom: 13, speed: 1.4, essential: true });
+    setGeoOpen(false);
+    setGeoQuery(r.display_name);
+  };
+
+  const goToMyLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error(isAr ? "تحديد الموقع غير مدعوم" : "Geolocation not supported");
+      return;
+    }
+    toast.message(isAr ? "جاري تحديد موقعك..." : "Locating you...");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const map = mapRef.current;
+        if (!map) return;
+        map.flyTo({ center: [longitude, latitude], zoom: 15, speed: 1.4, essential: true });
+        meMarkerRef.current?.remove();
+        const el = document.createElement("div");
+        el.style.cssText = `
+          width: 18px; height: 18px; border-radius: 9999px;
+          background: hsl(220 100% 60%); border: 3px solid white;
+          box-shadow: 0 0 0 4px hsl(220 100% 60% / 0.35), 0 4px 12px rgba(0,0,0,0.4);
+        `;
+        meMarkerRef.current = new maplibregl.Marker({ element: el })
+          .setLngLat([longitude, latitude])
+          .addTo(map);
+        toast.success(isAr ? "تم تحديد موقعك" : "Location set");
+      },
+      (err) => {
+        toast.error(
+          isAr
+            ? `تعذر تحديد الموقع: ${err.message}`
+            : `Could not get location: ${err.message}`,
+        );
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
   };
 
   return (
@@ -336,12 +346,12 @@ function MapPage() {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={isAr ? "بحث..." : "Search..."}
-              className="ps-8 w-48"
+              placeholder={isAr ? "تصفية محلية..." : "Filter local..."}
+              className="ps-8 w-44"
             />
           </div>
           <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -350,46 +360,77 @@ function MapPage() {
               <SelectItem value="targets">{isAr ? "الأهداف فقط" : "Targets only"}</SelectItem>
               {targetTypes.map((tt) => (
                 <SelectItem key={tt} value={tt}>
-                  {isAr ? "نوع: " : "Type: "}
-                  {tt}
+                  {isAr ? "نوع: " : "Type: "}{tt}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Select value={styleId} onValueChange={setStyleId}>
+          <Select value={styleKey} onValueChange={(v) => setStyleKey(v as StyleKey)}>
             <SelectTrigger className="w-40">
               <Layers className="h-4 w-4 me-2" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="satellite-streets-v12">{isAr ? "قمر صناعي" : "Satellite"}</SelectItem>
-              <SelectItem value="outdoors-v12">{isAr ? "تضاريس" : "Outdoors"}</SelectItem>
-              <SelectItem value="dark-v11">{isAr ? "داكن" : "Dark"}</SelectItem>
-              <SelectItem value="streets-v12">{isAr ? "شوارع" : "Streets"}</SelectItem>
+              <SelectItem value="satellite">{isAr ? "قمر صناعي HD" : "Satellite HD"}</SelectItem>
+              <SelectItem value="hybrid">{isAr ? "هجين HD" : "Hybrid HD"}</SelectItem>
+              <SelectItem value="terrain">{isAr ? "تضاريس HD" : "Terrain HD"}</SelectItem>
+              <SelectItem value="streets">{isAr ? "شوارع HD" : "Streets HD"}</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="icon" onClick={() => setShowSettings(true)}>
-            <Settings className="h-4 w-4" />
+          <Button variant="outline" size="sm" onClick={goToMyLocation} className="gap-2">
+            <LocateFixed className="h-4 w-4" />
+            <span className="hidden sm:inline">{isAr ? "موقعي" : "My location"}</span>
           </Button>
         </div>
+      </div>
+
+      {/* Smart geocoding search */}
+      <div className="relative">
+        <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary z-10" />
+        <Input
+          value={geoQuery}
+          onChange={(e) => {
+            setGeoQuery(e.target.value);
+            setGeoOpen(true);
+          }}
+          onFocus={() => setGeoOpen(true)}
+          placeholder={isAr ? "ابحث: مدينة، قرية، جبل، وادٍ، أو إحداثيات (مثل 14.03,44.12)" : "Search a city, village, mountain, valley, or coordinates"}
+          className="ps-10 h-12 text-sm bg-card/60 backdrop-blur border-border/60"
+        />
+        {geoLoading && (
+          <Loader2 className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+        )}
+        {geoOpen && geoResults.length > 0 && (
+          <div className="absolute z-30 mt-1 w-full rounded-xl border border-border/60 bg-popover/95 backdrop-blur shadow-lg max-h-72 overflow-auto">
+            {geoResults.map((r, i) => (
+              <button
+                key={`${r.lat}-${r.lon}-${i}`}
+                onClick={() => flyToResult(r)}
+                className="w-full text-start px-3 py-2.5 hover:bg-accent/30 text-sm border-b border-border/40 last:border-0 flex items-start gap-2"
+              >
+                <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                <span className="line-clamp-2">{r.display_name}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <Card className="p-0 overflow-hidden border-border/50">
         <div ref={containerRef} className="w-full h-[70vh] min-h-[500px] bg-muted" />
       </Card>
 
-      {points.length === 0 && (
+      {points.length === 0 && surveys.length === 0 && targets.length === 0 && (
         <Card className="p-8 text-center border-dashed">
           <MapPin className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
           <p className="text-sm text-muted-foreground">
             {isAr
-              ? "لا توجد مسوحات أو أهداف بإحداثيات بعد. أضف إحداثيات من صفحة المسوحات والأهداف."
-              : "No surveys or targets with coordinates yet. Add coordinates from the surveys and targets pages."}
+              ? "لا توجد مسوحات أو أهداف بإحداثيات بعد. استخدم البحث أعلاه للتنقل بين المواقع."
+              : "No surveys or targets with coordinates yet. Use the search above to navigate to any location."}
           </p>
         </Card>
       )}
 
-      {/* Detail dialog */}
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent>
           <DialogHeader>
@@ -436,31 +477,6 @@ function MapPage() {
               />
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Settings dialog */}
-      <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{isAr ? "إعدادات الخريطة" : "Map settings"}</DialogTitle>
-            <DialogDescription>
-              {isAr
-                ? "ضع توكن Mapbox الخاص بك (يبدأ بـ pk.) للوصول إلى خرائطك المخصصة."
-                : "Provide your own Mapbox public token (starts with pk.) to use custom maps."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <Input
-              value={tokenInput}
-              onChange={(e) => setTokenInput(e.target.value)}
-              placeholder="pk.eyJ1Ijo..."
-              className="font-mono text-xs"
-            />
-            <Button onClick={saveToken} className="w-full gradient-gold text-background">
-              {isAr ? "حفظ" : "Save"}
-            </Button>
-          </div>
         </DialogContent>
       </Dialog>
     </div>
