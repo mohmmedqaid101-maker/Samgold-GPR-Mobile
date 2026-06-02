@@ -36,12 +36,11 @@ function AiAnalysisPage() {
       setResult(res.content);
       // Log usage (best-effort, ignore errors)
       if (user) {
-        await supabase.from("ai_usage_log").insert({
-          user_id: user.id,
-          model: "google/gemini-2.5-flash",
-          endpoint: "analyzeGeoData",
-          tokens_input: Math.ceil((prompt.length + context.length) / 4),
-          tokens_output: Math.ceil(res.content.length / 4),
+        await supabase.rpc("log_ai_usage", {
+          _model: "google/gemini-2.5-flash",
+          _endpoint: "analyzeGeoData",
+          _tokens_input: Math.ceil((prompt.length + context.length) / 4),
+          _tokens_output: Math.ceil(res.content.length / 4),
         });
       }
     } catch (e) {

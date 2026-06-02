@@ -651,6 +651,26 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_activity: {
+        Args: {
+          _category?: Database["public"]["Enums"]["activity_category"]
+          _description_ar: string
+          _description_en: string
+          _metadata?: Json
+        }
+        Returns: string
+      }
+      log_ai_usage: {
+        Args: {
+          _cost_credits?: number
+          _endpoint: string
+          _metadata?: Json
+          _model: string
+          _tokens_input: number
+          _tokens_output: number
+        }
+        Returns: string
+      }
     }
     Enums: {
       activity_category:

@@ -56,13 +56,12 @@ export async function logActivity(
   category: Activity["category"] = "system",
   metadata?: Record<string, unknown>
 ) {
-  await supabase.from("activity_log").insert([
-    {
-      user_id: userId,
-      description_ar: ar,
-      description_en: en,
-      category,
-      metadata: (metadata ?? null) as never,
-    },
-  ]);
+  // userId is implicit (server-side from auth.uid()) — kept in signature for compatibility
+  void userId;
+  await supabase.rpc("log_activity", {
+    _description_ar: ar,
+    _description_en: en,
+    _category: category,
+    _metadata: (metadata ?? null) as never,
+  });
 }
