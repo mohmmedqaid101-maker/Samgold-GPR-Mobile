@@ -62,7 +62,7 @@ const STYLES: Record<StyleKey, StyleSpecification> = {
         ],
         tileSize: 256,
         attribution: "Tiles © Esri",
-        maxzoom: 19,
+        maxzoom: 22,
       },
     },
     layers: [{ id: "sat", type: "raster", source: "sat" }],
@@ -77,20 +77,42 @@ const STYLES: Record<StyleKey, StyleSpecification> = {
         ],
         tileSize: 256,
         attribution: "Tiles © Esri",
-        maxzoom: 19,
+        maxzoom: 22,
       },
-      labels: {
+      boundaries: {
         type: "raster",
         tiles: [
           "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
         ],
         tileSize: 256,
-        maxzoom: 19,
+        maxzoom: 22,
+      },
+      transport: {
+        type: "raster",
+        tiles: [
+          "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",
+        ],
+        tileSize: 256,
+        maxzoom: 22,
+      },
+      places: {
+        type: "raster",
+        tiles: [
+          "https://a.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png",
+          "https://b.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png",
+          "https://c.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png",
+          "https://d.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png",
+        ],
+        tileSize: 256,
+        attribution: "Labels © OpenStreetMap, © CARTO",
+        maxzoom: 20,
       },
     },
     layers: [
       { id: "sat", type: "raster", source: "sat" },
-      { id: "labels", type: "raster", source: "labels" },
+      { id: "boundaries", type: "raster", source: "boundaries" },
+      { id: "transport", type: "raster", source: "transport" },
+      { id: "places", type: "raster", source: "places", paint: { "raster-opacity": 0.95 } },
     ],
   },
   terrain: {
@@ -127,7 +149,7 @@ function MapPage() {
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const meMarkerRef = useRef<maplibregl.Marker | null>(null);
 
-  const [styleKey, setStyleKey] = useState<StyleKey>("satellite");
+  const [styleKey, setStyleKey] = useState<StyleKey>("hybrid");
   const [surveys, setSurveys] = useState<SurveyRow[]>([]);
   const [targets, setTargets] = useState<TargetRow[]>([]);
   const [filterType, setFilterType] = useState<string>("all");
