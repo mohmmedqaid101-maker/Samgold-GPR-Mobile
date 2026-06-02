@@ -82,7 +82,7 @@ function Security() {
       const profile = profileRes.data as { mfa_enabled?: boolean; biometric_enabled?: boolean; session_alerts_enabled?: boolean } | null;
       // Keep profile flag synced with reality
       if (profile && profile.mfa_enabled !== verifiedTotp) {
-        await supabase.rpc("update_security_preference" as never, { _key: "mfa_enabled", _value: verifiedTotp });
+        await supabase.rpc("update_security_preference" as never, ({ _key: "mfa_enabled", _value: verifiedTotp } as never));
       }
 
       setMfaEnabled(verifiedTotp);
@@ -142,7 +142,7 @@ function Security() {
         code: otpCode.trim(),
       });
       if (vErr) throw vErr;
-      await supabase.rpc("update_security_preference" as never, { _key: "mfa_enabled", _value: true });
+      await supabase.rpc("update_security_preference" as never, ({ _key: "mfa_enabled", _value: true } as never));
       toast.success(t("تم تفعيل المصادقة الثنائية", "Two-factor authentication enabled"));
       setEnrollOpen(false);
       setEnrollData(null);
@@ -162,7 +162,7 @@ function Security() {
       for (const f of data?.totp ?? []) {
         await supabase.auth.mfa.unenroll({ factorId: f.id });
       }
-      await supabase.rpc("update_security_preference" as never, { _key: "mfa_enabled", _value: false });
+      await supabase.rpc("update_security_preference" as never, ({ _key: "mfa_enabled", _value: false } as never));
       toast.success(t("تم تعطيل المصادقة الثنائية", "Two-factor disabled"));
       await refresh();
     } catch (e) {
@@ -217,7 +217,7 @@ function Security() {
         } as never);
       if (error) throw error;
 
-      await supabase.rpc("update_security_preference" as never, { _key: "biometric_enabled", _value: true });
+      await supabase.rpc("update_security_preference" as never, ({ _key: "biometric_enabled", _value: true } as never));
       toast.success(t("تم تسجيل البصمة على هذا الجهاز", "Biometric registered on this device"));
       await refresh();
     } catch (e) {
@@ -234,7 +234,7 @@ function Security() {
       if (error) throw error;
       const remaining = credentials.filter((c) => c.id !== id);
       if (remaining.length === 0) {
-        await supabase.rpc("update_security_preference" as never, { _key: "biometric_enabled", _value: false });
+        await supabase.rpc("update_security_preference" as never, ({ _key: "biometric_enabled", _value: false } as never));
       }
       toast.success(t("تم الحذف", "Removed"));
       await refresh();
@@ -279,7 +279,7 @@ function Security() {
     setBusy("alerts");
     setSessionAlerts(val);
     try {
-      const { error } = await supabase.rpc("update_security_preference" as never, {
+      const { error } = await supabase.rpc("update_security_preference" as never, ({
         _key: "session_alerts_enabled",
         _value: val,
       });
