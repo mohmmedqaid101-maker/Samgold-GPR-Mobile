@@ -149,7 +149,7 @@ function MapPage() {
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const meMarkerRef = useRef<maplibregl.Marker | null>(null);
 
-  const [styleKey, setStyleKey] = useState<StyleKey>("satellite");
+  const [styleKey, setStyleKey] = useState<StyleKey>("hybrid");
   const [surveys, setSurveys] = useState<SurveyRow[]>([]);
   const [targets, setTargets] = useState<TargetRow[]>([]);
   const [filterType, setFilterType] = useState<string>("all");
