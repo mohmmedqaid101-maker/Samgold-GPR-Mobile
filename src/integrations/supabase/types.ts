@@ -268,6 +268,7 @@ export type Database = {
           paddle_customer_id: string | null
           paddle_subscription_id: string | null
           phone: string | null
+          session_alerts_enabled: boolean
           subscription_expires_at: string | null
           subscription_status: Database["public"]["Enums"]["subscription_status"]
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
@@ -285,6 +286,7 @@ export type Database = {
           paddle_customer_id?: string | null
           paddle_subscription_id?: string | null
           phone?: string | null
+          session_alerts_enabled?: boolean
           subscription_expires_at?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
@@ -302,6 +304,7 @@ export type Database = {
           paddle_customer_id?: string | null
           paddle_subscription_id?: string | null
           phone?: string | null
+          session_alerts_enabled?: boolean
           subscription_expires_at?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
@@ -616,6 +619,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_webauthn_credentials: {
+        Row: {
+          created_at: string
+          credential_id: string
+          device_label: string | null
+          id: string
+          last_used_at: string | null
+          public_key: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credential_id: string
+          device_label?: string | null
+          id?: string
+          last_used_at?: string | null
+          public_key?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credential_id?: string
+          device_label?: string | null
+          id?: string
+          last_used_at?: string | null
+          public_key?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -670,6 +703,10 @@ export type Database = {
           _tokens_output: number
         }
         Returns: string
+      }
+      update_security_preference: {
+        Args: { _key: string; _value: boolean }
+        Returns: boolean
       }
     }
     Enums: {
