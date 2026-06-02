@@ -282,7 +282,7 @@ function Security() {
       const { error } = await supabase.rpc("update_security_preference" as never, ({
         _key: "session_alerts_enabled",
         _value: val,
-      });
+      } as never));
       if (error) throw error;
       toast.success(val ? t("تم تفعيل التنبيهات", "Alerts enabled") : t("تم الإيقاف", "Alerts disabled"));
     } catch (e) {
