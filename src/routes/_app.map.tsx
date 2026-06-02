@@ -98,11 +98,13 @@ const STYLES: Record<StyleKey, StyleSpecification> = {
       places: {
         type: "raster",
         tiles: [
-          "https://stamen-tiles.a.ssl.fastly.net/terrain-labels/{z}/{x}/{y}.png",
-          "https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+          "https://a.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png",
+          "https://b.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png",
+          "https://c.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png",
+          "https://d.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png",
         ],
         tileSize: 256,
-        attribution: "Labels © OSM contributors",
+        attribution: "Labels © OpenStreetMap, © CARTO",
         maxzoom: 20,
       },
     },
