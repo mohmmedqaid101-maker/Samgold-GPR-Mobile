@@ -55,7 +55,15 @@ export const Route = createRootRoute({
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/cbBepxSF5WVj85VYQfkOuSo3Tho2/social-images/social-1776445201784-1000220927.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/cbBepxSF5WVj85VYQfkOuSo3Tho2/social-images/social-1776445201784-1000220927.webp" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Inter:wght@100..900&family=Orbitron:wght@400;700;900&family=Tajawal:wght@200..900&display=swap",
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
